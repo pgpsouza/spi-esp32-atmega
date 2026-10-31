@@ -22,7 +22,11 @@ SPI communication between an ESP32-S3 N16R8 (controller, MQTT gateway) and an AT
 
 - Variables in `camelCase`.
 - Functions in `snake_case`.
-- Every function has a summary comment directly above it.
+- Classes in `PascalCase`.
+- Methods in `snake_case`.
+- Members in `camelCase`.
+- File names are the same as their classes.
+- Every function has a Doxygen summary comment directly above it.
 - Each step of a function's scope occupies one line.
 - Use the ternary operator when it simplifies reading.
 - Follow clean code: descriptive names, small functions with a single responsibility, no dead code, and no comments that repeat the code.
