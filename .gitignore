@@ -53,3 +53,13 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# PlatformIO
+.pio/
+
+# KiCad local files
+*-backups/
+*.kicad_prl
+fp-info-cache
+_autosave-*
+*.lck
