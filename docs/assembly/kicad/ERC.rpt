@@ -1,0 +1,35 @@
+Relatório ERC (2026-10-31T11:14:43-0300, Codificação UTF8)
+
+***** Folha /
+[lib_symbol_mismatch]: O símbolo '+5V' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(3100 mils, 2700 mils): Símbolo #PWR03 [+5V]
+[lib_symbol_mismatch]: O símbolo 'GND' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(3100 mils, 3400 mils): Símbolo #PWR04 [GND]
+[lib_symbol_mismatch]: O símbolo '+5V' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(3100 mils, 3900 mils): Símbolo #PWR05 [+5V]
+[lib_symbol_mismatch]: O símbolo 'GND' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(3100 mils, 4500 mils): Símbolo #PWR06 [GND]
+[lib_symbol_mismatch]: O símbolo '+5V' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(5000 mils, 3200 mils): Símbolo #PWR01 [+5V]
+[lib_symbol_mismatch]: O símbolo 'GND' não bate com a cópia existente na biblioteca 'power'
+    ; warning
+    @(5000 mils, 4800 mils): Símbolo #PWR02 [GND]
+[global_label_dangling]: O rótulo global não está conectado em nenhum outro lugar no esquema
+    ; warning
+    @(5900 mils, 3700 mils): Rótulo global 'SPI_SS'
+[global_label_dangling]: O rótulo global não está conectado em nenhum outro lugar no esquema
+    ; warning
+    @(5900 mils, 3800 mils): Rótulo global 'SPI_MOSI'
+[global_label_dangling]: O rótulo global não está conectado em nenhum outro lugar no esquema
+    ; warning
+    @(5900 mils, 3900 mils): Rótulo global 'SPI_MISO'
+[global_label_dangling]: O rótulo global não está conectado em nenhum outro lugar no esquema
+    ; warning
+    @(5900 mils, 4000 mils): Rótulo global 'SPI_SCK'
+
+ ** Mensagens ERC: 10  Erros 0  Advertências 10

@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "spi_esp32_atmega")(type "KiCad")(uri "${KIPRJMOD}/spi_esp32_atmega.kicad_sym")(options "")(descr "Project symbols"))
+)
