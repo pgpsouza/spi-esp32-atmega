@@ -63,3 +63,6 @@ dkms.conf
 fp-info-cache
 _autosave-*
 *.lck
+
+# ESP32 credentials (copy esp32s3/include/secrets.example.h)
+esp32s3/include/secrets.h
