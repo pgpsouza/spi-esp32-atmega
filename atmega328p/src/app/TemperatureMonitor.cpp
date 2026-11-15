@@ -1,38 +1,22 @@
 #include "TemperatureMonitor.h"
 
-TemperatureMonitor::TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter, TemperatureDisplay &display,
-                                       SpiPeripheral &spi, SerialLogger &logger, uint16_t displayIntervalMs, uint32_t sampleIntervalMs)
-    : sensor(sensor), converter(converter), display(display), spi(spi), logger(logger),
-      displayIntervalMs(displayIntervalMs), sampleIntervalMs(sampleIntervalMs)
+TemperatureMonitor::TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter, SpiPeripheral &spi,
+                                       SerialLogger &logger, uint32_t sampleIntervalMs)
+    : sensor(sensor), converter(converter), spi(spi), logger(logger), sampleIntervalMs(sampleIntervalMs)
 {
 }
 
 void TemperatureMonitor::begin()
 {
   logger.begin();
-  if (!display.begin())
-  {
-    halt(F("SSD1306 not found"));
-  }
   spi.begin();
   publish_sample();
 }
 
 void TemperatureMonitor::update()
 {
-  if (has_elapsed(lastDisplayMs, displayIntervalMs))
-    refresh_display();
-  if (has_elapsed(lastSampleMs, sampleIntervalMs))
+  if (millis() - lastSampleMs >= sampleIntervalMs)
     publish_sample();
-}
-
-void TemperatureMonitor::refresh_display()
-{
-  lastDisplayMs = millis();
-  uint16_t rawValue = sensor.read_raw();
-  float temperatureC = converter.to_celsius(rawValue);
-  display.show(temperatureC, rawValue);
-  logger.log_reading(temperatureC, rawValue);
 }
 
 void TemperatureMonitor::publish_sample()
@@ -55,17 +39,4 @@ SampleFrame TemperatureMonitor::build_sample(uint16_t rawValue, float temperatur
   sample.rawAdc = rawValue;
   sample.checksum = protocol_checksum(sample);
   return sample;
-}
-
-bool TemperatureMonitor::has_elapsed(uint32_t sinceMs, uint32_t intervalMs)
-{
-  return millis() - sinceMs >= intervalMs;
-}
-
-void TemperatureMonitor::halt(const __FlashStringHelper *message)
-{
-  logger.log_error(message);
-  while (true)
-  {
-  }
 }

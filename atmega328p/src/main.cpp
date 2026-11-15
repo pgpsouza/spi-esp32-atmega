@@ -4,11 +4,6 @@
 
 constexpr uint8_t sensorPin = A0;
 constexpr uint8_t samplesPerReading = 8;
-constexpr uint8_t screenWidth = 128;
-constexpr uint8_t screenHeight = 64;
-constexpr uint8_t oledAddress = 0x3C;
-constexpr uint16_t displayIntervalMs = 500;
-constexpr uint32_t sampleIntervalMs = 30000;
 constexpr uint32_t serialBaudRate = 115200;
 
 // Placeholder calibration: the ADC range maps linearly to this range until the real sensor curve is defined.
@@ -17,10 +12,9 @@ constexpr float temperatureAtAdcMaxC = 100.0f;
 
 AnalogSensor sensor(sensorPin, samplesPerReading);
 TemperatureConverter converter(AnalogSensor::adcMaxValue, temperatureAtAdcMinC, temperatureAtAdcMaxC);
-TemperatureDisplay display(screenWidth, screenHeight, oledAddress);
 SpiPeripheral spi;
 SerialLogger logger(serialBaudRate);
-TemperatureMonitor monitor(sensor, converter, display, spi, logger, displayIntervalMs, sampleIntervalMs);
+TemperatureMonitor monitor(sensor, converter, spi, logger, samplePeriodMs);
 
 /**
  * @brief SPI transfer-complete interrupt: forwards the received byte to the SPI peripheral.
@@ -48,7 +42,7 @@ void setup()
 }
 
 /**
- * @brief Arduino main loop: gives the monitor a chance to refresh the display or publish a sample.
+ * @brief Arduino main loop: gives the monitor a chance to publish a sample.
  */
 void loop()
 {
