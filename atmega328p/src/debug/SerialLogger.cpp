@@ -10,16 +10,10 @@ void SerialLogger::begin()
   Serial.begin(baudRate);
 }
 
-void SerialLogger::log_reading(float temperatureC, uint16_t rawValue)
+void SerialLogger::log_sample(uint16_t sequence, float temperatureC)
 {
-  Serial.print(F("raw="));
-  Serial.print(rawValue);
+  Serial.print(F("sample seq="));
+  Serial.print(sequence);
   Serial.print(F(" temperatureC="));
-  Serial.println(temperatureC, 1);
-}
-
-void SerialLogger::log_error(const __FlashStringHelper *message)
-{
-  Serial.print(F("error: "));
-  Serial.println(message);
+  Serial.println(temperatureC, 2);
 }

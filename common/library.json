@@ -1,0 +1,11 @@
+{
+  "name": "protocol",
+  "version": "1.0.0",
+  "description": "SPI protocol contract shared by the ESP32-S3 and ATmega328P firmware",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "includeDir": ".",
+    "srcDir": "."
+  }
+}

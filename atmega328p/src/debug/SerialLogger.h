@@ -21,19 +21,12 @@ public:
   void begin();
 
   /**
-   * @brief Logs a sensor reading.
+   * @brief Logs a sample made available to the SPI controller.
    *
-   * @param temperatureC Temperature in degrees Celsius.
-   * @param rawValue ADC value the temperature was computed from.
+   * @param sequence Sequence number of the sample.
+   * @param temperatureC Temperature of the sample in degrees Celsius.
    */
-  void log_reading(float temperatureC, uint16_t rawValue);
-
-  /**
-   * @brief Logs an error message stored in flash.
-   *
-   * @param message Error text, wrapped with F().
-   */
-  void log_error(const __FlashStringHelper *message);
+  void log_sample(uint16_t sequence, float temperatureC);
 
 private:
   uint32_t baudRate;

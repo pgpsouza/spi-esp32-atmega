@@ -1,12 +1,14 @@
 #pragma once
 
+#include <protocol.h>
+
 #include "../debug/SerialLogger.h"
 #include "../domain/TemperatureConverter.h"
 #include "../drivers/AnalogSensor.h"
-#include "../drivers/TemperatureDisplay.h"
+#include "../drivers/SpiPeripheral.h"
 
 /**
- * @brief Runs the acquisition cycle: read the sensor, convert to temperature, display and log.
+ * @brief Runs the acquisition cycle: keeps a live reading fresh and publishes an official sample to the SPI controller periodically.
  */
 class TemperatureMonitor
 {
@@ -16,40 +18,59 @@ public:
    *
    * @param sensor Source of raw ADC readings.
    * @param converter Converts raw readings to degrees Celsius.
-   * @param display Shows each reading.
-   * @param logger Receives each reading and initialization errors.
-   * @param readIntervalMs Time between readings in milliseconds.
+   * @param spi Serves the official sample and the live reading to the ESP32-S3.
+   * @param logger Receives each official sample.
+   * @param sampleIntervalMs Time between official samples in milliseconds.
+   * @param liveIntervalMs Time between live readings in milliseconds.
    */
-  TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter,
-                     TemperatureDisplay &display, SerialLogger &logger, uint16_t readIntervalMs);
+  TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter, SpiPeripheral &spi,
+                     SerialLogger &logger, uint32_t sampleIntervalMs, uint32_t liveIntervalMs);
 
   /**
-   * @brief Starts the logger and the display, halting if the display does not answer.
+   * @brief Starts the logger and the SPI peripheral, then publishes the first live reading and official sample.
    */
   void begin();
 
   /**
-   * @brief Processes a reading once readIntervalMs has elapsed; returns immediately otherwise.
+   * @brief Refreshes the live reading and publishes an official sample when their intervals have elapsed; never blocks.
    */
   void update();
 
 private:
   AnalogSensor &sensor;
   TemperatureConverter &converter;
-  TemperatureDisplay &display;
+  SpiPeripheral &spi;
   SerialLogger &logger;
-  uint16_t readIntervalMs;
-  uint32_t lastReadMs = 0;
+  uint32_t sampleIntervalMs;
+  uint32_t liveIntervalMs;
+  uint32_t lastSampleMs = 0;
+  uint32_t lastLiveMs = 0;
+  uint16_t sequence = 0;
 
   /**
-   * @brief Reads the sensor, converts the value, then displays and logs it.
+   * @brief Reads the sensor and makes it available as the live reading, with sequence 0.
    */
-  void process_reading();
+  void publish_live_reading();
 
   /**
-   * @brief Logs an error and stops execution.
+   * @brief Reads the sensor and makes it available as a new official sample with the next sequence number.
+   */
+  void publish_sample();
+
+  /**
+   * @brief Advances the sequence number, skipping 0, which marks live readings.
    *
-   * @param message Error text, wrapped with F().
+   * @return The new sequence number.
    */
-  void halt(const __FlashStringHelper *message);
+  uint16_t next_sequence();
+
+  /**
+   * @brief Builds a protocol frame with a valid checksum.
+   *
+   * @param frameSequence Sequence number of the frame (0 for a live reading).
+   * @param rawValue ADC value of the reading.
+   * @param temperatureC Temperature of the reading in degrees Celsius.
+   * @return Frame ready to be served over SPI.
+   */
+  static SampleFrame build_frame(uint16_t frameSequence, uint16_t rawValue, float temperatureC);
 };
