@@ -10,8 +10,9 @@ Contrato entre o **ESP32-S3** (controlador, embarcado A) e o **ATmega328P** (per
 | Modo SPI | 0 (CPOL=0, CPHA=0), MSB primeiro | Padrão do hardware SPI do ATmega328P |
 | Clock | 500 kHz | Folga para o ATmega atender cada byte por interrupção |
 | Setup após SS baixo | 10 µs | Tempo para o periférico perceber a seleção |
-| Intervalo entre bytes | 40 µs | O ATmega carrega o próximo byte na ISR; cobre a latência das interrupções de I2C e `millis()` |
+| Intervalo entre bytes | 40 µs | O ATmega carrega o próximo byte na ISR; cobre a latência de outras interrupções, como a de `millis()` |
 | Ordem dos bytes | Little-endian | Ordem nativa dos dois MCUs |
+| Período das amostras | 30 s (`samplePeriodMs`) | Requisito 4. O ATmega usa para gerar amostras; o ESP32 usa para mostrar na tela quanto falta para a próxima |
 
 ## Fluxo
 

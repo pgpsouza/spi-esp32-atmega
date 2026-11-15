@@ -11,6 +11,9 @@ constexpr uint32_t spiClockHz = 500000;
 constexpr uint8_t spiSelectSetupUs = 10;
 constexpr uint8_t spiInterByteDelayUs = 40;
 
+// The ATmega328P makes a new sample available with this period; the ESP32-S3 uses it to show the time to the next one.
+constexpr uint32_t samplePeriodMs = 30000;
+
 enum class Command : uint8_t
 {
   ReadSample = 0xA1,

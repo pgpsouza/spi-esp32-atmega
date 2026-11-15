@@ -6,10 +6,9 @@
 #include "../domain/TemperatureConverter.h"
 #include "../drivers/AnalogSensor.h"
 #include "../drivers/SpiPeripheral.h"
-#include "../drivers/TemperatureDisplay.h"
 
 /**
- * @brief Runs the acquisition cycle: refreshes the display often and publishes a sample to the SPI controller periodically.
+ * @brief Runs the acquisition cycle: reads the sensor and publishes a sample to the SPI controller periodically.
  */
 class TemperatureMonitor
 {
@@ -19,43 +18,31 @@ public:
    *
    * @param sensor Source of raw ADC readings.
    * @param converter Converts raw readings to degrees Celsius.
-   * @param display Shows the latest reading.
    * @param spi Serves the latest sample to the ESP32-S3.
-   * @param logger Receives readings, samples and initialization errors.
-   * @param displayIntervalMs Time between display refreshes in milliseconds.
+   * @param logger Receives each published sample.
    * @param sampleIntervalMs Time between samples served over SPI in milliseconds.
    */
-  TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter, TemperatureDisplay &display,
-                     SpiPeripheral &spi, SerialLogger &logger, uint16_t displayIntervalMs, uint32_t sampleIntervalMs);
+  TemperatureMonitor(AnalogSensor &sensor, TemperatureConverter &converter, SpiPeripheral &spi,
+                     SerialLogger &logger, uint32_t sampleIntervalMs);
 
   /**
-   * @brief Starts the logger, the display and the SPI peripheral, then publishes the first sample.
-   *
-   * Halts if the display does not answer.
+   * @brief Starts the logger and the SPI peripheral, then publishes the first sample.
    */
   void begin();
 
   /**
-   * @brief Refreshes the display and publishes a sample when their intervals have elapsed; never blocks.
+   * @brief Publishes a sample when sampleIntervalMs has elapsed; never blocks.
    */
   void update();
 
 private:
   AnalogSensor &sensor;
   TemperatureConverter &converter;
-  TemperatureDisplay &display;
   SpiPeripheral &spi;
   SerialLogger &logger;
-  uint16_t displayIntervalMs;
   uint32_t sampleIntervalMs;
-  uint32_t lastDisplayMs = 0;
   uint32_t lastSampleMs = 0;
   uint16_t sequence = 0;
-
-  /**
-   * @brief Reads the sensor and shows the reading on the display.
-   */
-  void refresh_display();
 
   /**
    * @brief Reads the sensor and makes a new sample available to the SPI controller.
@@ -70,20 +57,4 @@ private:
    * @return Frame ready to be served over SPI.
    */
   SampleFrame build_sample(uint16_t rawValue, float temperatureC);
-
-  /**
-   * @brief Checks whether an interval has elapsed since a timestamp.
-   *
-   * @param sinceMs Timestamp from millis().
-   * @param intervalMs Interval in milliseconds.
-   * @return true if at least intervalMs passed since sinceMs.
-   */
-  static bool has_elapsed(uint32_t sinceMs, uint32_t intervalMs);
-
-  /**
-   * @brief Logs an error and stops execution.
-   *
-   * @param message Error text, wrapped with F().
-   */
-  void halt(const __FlashStringHelper *message);
 };
