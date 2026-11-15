@@ -3,9 +3,8 @@
 #include "../domain/SamplePayload.h"
 
 GatewayApp::GatewayApp(SpiController &spi, WifiConnection &wifi, MqttPublisher &mqtt, TemperatureDisplay &display,
-                       SerialLogger &logger, const char *topic, uint32_t pollIntervalMs, uint32_t displayIntervalMs)
-    : spi(spi), wifi(wifi), mqtt(mqtt), display(display), logger(logger), topic(topic),
-      pollIntervalMs(pollIntervalMs), displayIntervalMs(displayIntervalMs)
+                       SerialLogger &logger, const char *topic, const GatewaySettings &settings)
+    : spi(spi), wifi(wifi), mqtt(mqtt), display(display), logger(logger), topic(topic), settings(settings)
 {
 }
 
@@ -23,11 +22,13 @@ void GatewayApp::begin()
 void GatewayApp::update()
 {
   bool online = maintain_connections();
-  if (millis() - lastPollMs >= pollIntervalMs)
-    poll_peripheral();
+  if (millis() - lastSamplePollMs >= settings.samplePollIntervalMs)
+    poll_sample();
+  if (millis() - lastLivePollMs >= settings.livePollIntervalMs)
+    poll_live();
   if (online && hasPendingSample)
     publish_pending_sample();
-  if (millis() - lastDisplayMs >= displayIntervalMs)
+  if (millis() - lastDisplayMs >= settings.displayIntervalMs)
     refresh_display();
 }
 
@@ -40,9 +41,9 @@ bool GatewayApp::maintain_connections()
   return mqttConnected;
 }
 
-void GatewayApp::poll_peripheral()
+void GatewayApp::poll_sample()
 {
-  lastPollMs = millis();
+  lastSamplePollMs = millis();
   SampleFrame sample;
   if (!spi.read_sample(sample))
   {
@@ -56,6 +57,19 @@ void GatewayApp::poll_peripheral()
   latestSample = sample;
   hasPendingSample = true;
   logger.log_sample(sample);
+}
+
+void GatewayApp::poll_live()
+{
+  lastLivePollMs = millis();
+  SampleFrame reading;
+  if (!spi.read_live(reading))
+    return;
+  if (hasShownTemperature && !differs_from_shown(reading.temperatureCentiC))
+    return;
+  shownTemperatureCentiC = reading.temperatureCentiC;
+  hasShownTemperature = true;
+  refresh_display();
 }
 
 void GatewayApp::publish_pending_sample()
@@ -76,12 +90,18 @@ void GatewayApp::refresh_display()
   lastDisplayMs = millis();
   if (!displayReady)
     return;
-  if (lastReceivedSequence == 0)
+  if (!hasShownTemperature)
   {
     display.show_waiting();
     return;
   }
-  display.show_temperature(latestSample.temperatureCentiC / 100.0f, seconds_to_next_sample());
+  display.show_temperature(shownTemperatureCentiC / 100.0f, seconds_to_next_sample());
+}
+
+bool GatewayApp::differs_from_shown(int16_t temperatureCentiC) const
+{
+  int32_t difference = static_cast<int32_t>(temperatureCentiC) - shownTemperatureCentiC;
+  return abs(difference) >= settings.displayMarginCentiC;
 }
 
 uint8_t GatewayApp::seconds_to_next_sample() const
