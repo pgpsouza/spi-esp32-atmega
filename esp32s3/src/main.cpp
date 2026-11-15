@@ -13,8 +13,9 @@ constexpr uint8_t i2cSclPin = 9;
 constexpr uint8_t screenWidth = 128;
 constexpr uint8_t screenHeight = 64;
 constexpr uint8_t oledAddress = 0x3C;
-constexpr uint32_t pollIntervalMs = 1000;
+constexpr uint32_t samplePollIntervalMs = 1000;
 constexpr uint32_t displayIntervalMs = 1000;
+constexpr int16_t displayMarginCentiC = 10;
 constexpr uint32_t mqttRetryIntervalMs = 5000;
 constexpr uint32_t serialBaudRate = 115200;
 constexpr char mqttClientId[] = "esp32s3-spi-gateway";
@@ -22,13 +23,15 @@ constexpr char mqttClientId[] = "esp32s3-spi-gateway";
 // The DevKitC-1 RGB LED is on GPIO48 (board v1.0) or GPIO38 (v1.1); neither pin is used otherwise.
 constexpr uint8_t rgbLedPins[] = {38, 48};
 
+constexpr GatewaySettings gatewaySettings = {samplePollIntervalMs, livePeriodMs, displayIntervalMs, displayMarginCentiC};
+
 SpiController spi(spiSckPin, spiMisoPin, spiMosiPin, spiCsPin);
 WifiConnection wifi(wifiSsid, wifiPassword);
 WiFiClient networkClient;
 MqttPublisher mqtt(networkClient, mqttBrokerHost, mqttBrokerPort, mqttClientId, mqttUser, mqttPassword, mqttRetryIntervalMs);
 TemperatureDisplay display(screenWidth, screenHeight, i2cSdaPin, i2cSclPin, oledAddress);
 SerialLogger logger(serialBaudRate);
-GatewayApp gateway(spi, wifi, mqtt, display, logger, mqttTopic, pollIntervalMs, displayIntervalMs);
+GatewayApp gateway(spi, wifi, mqtt, display, logger, mqttTopic, gatewaySettings);
 
 /**
  * @brief Turns off the onboard RGB LED, which some boards light with a random color at power-up.
@@ -51,7 +54,7 @@ void setup()
 }
 
 /**
- * @brief Arduino main loop: services connections, polls the ATmega328P, publishes new samples and refreshes the display.
+ * @brief Arduino main loop: services connections, polls the ATmega328P, publishes new samples and keeps the display live.
  */
 void loop()
 {

@@ -14,9 +14,13 @@ constexpr uint8_t spiInterByteDelayUs = 40;
 // The ATmega328P makes a new sample available with this period; the ESP32-S3 uses it to show the time to the next one.
 constexpr uint32_t samplePeriodMs = 30000;
 
+// The ATmega328P refreshes the live reading with this period; the ESP32-S3 polls it at the same rate for the display.
+constexpr uint32_t livePeriodMs = 500;
+
 enum class Command : uint8_t
 {
   ReadSample = 0xA1,
+  ReadLive = 0xA2,
 };
 
 struct __attribute__((packed)) SampleFrame

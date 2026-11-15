@@ -5,7 +5,7 @@
 #include <protocol.h>
 
 /**
- * @brief Reads samples from the ATmega328P over SPI, acting as the bus controller.
+ * @brief Reads samples and live readings from the ATmega328P over SPI, acting as the bus controller.
  */
 class SpiController
 {
@@ -26,12 +26,20 @@ public:
   void begin();
 
   /**
-   * @brief Requests the latest sample from the peripheral.
+   * @brief Requests the latest official sample from the peripheral.
    *
    * @param sample Receives the frame read from the bus.
    * @return true if the frame has the expected version and a valid checksum.
    */
   bool read_sample(SampleFrame &sample);
+
+  /**
+   * @brief Requests the live reading from the peripheral; its sequence number is always 0.
+   *
+   * @param reading Receives the frame read from the bus.
+   * @return true if the frame has the expected version and a valid checksum.
+   */
+  bool read_live(SampleFrame &reading);
 
 private:
   uint8_t sckPin;
@@ -41,11 +49,21 @@ private:
   SPISettings settings;
 
   /**
-   * @brief Sends the ReadSample command and clocks in the frame bytes, inside one chip select window.
+   * @brief Sends a command and validates the frame the peripheral answers with.
    *
+   * @param command Command to send.
+   * @param frame Receives the frame read from the bus.
+   * @return true if the frame has the expected version and a valid checksum.
+   */
+  bool request(Command command, SampleFrame &frame);
+
+  /**
+   * @brief Sends a command and clocks in the frame bytes, inside one chip select window.
+   *
+   * @param command Command to send.
    * @param buffer Receives the frame bytes.
    */
-  void transfer_frame(uint8_t *buffer);
+  void transfer_frame(Command command, uint8_t *buffer);
 
   /**
    * @brief Exchanges one byte, then waits for the peripheral to queue its next byte.

@@ -14,7 +14,7 @@ AnalogSensor sensor(sensorPin, samplesPerReading);
 TemperatureConverter converter(AnalogSensor::adcMaxValue, temperatureAtAdcMinC, temperatureAtAdcMaxC);
 SpiPeripheral spi;
 SerialLogger logger(serialBaudRate);
-TemperatureMonitor monitor(sensor, converter, spi, logger, samplePeriodMs);
+TemperatureMonitor monitor(sensor, converter, spi, logger, samplePeriodMs, livePeriodMs);
 
 /**
  * @brief SPI transfer-complete interrupt: forwards the received byte to the SPI peripheral.
@@ -25,12 +25,11 @@ ISR(SPI_STC_vect)
 }
 
 /**
- * @brief Pin-change interrupt of port B: resets the SPI transaction when the controller releases SS (D10).
+ * @brief Pin-change interrupt of port B: resets the SPI transaction on every edge of SS (D10).
  */
 ISR(PCINT0_vect)
 {
-  if (PINB & _BV(PINB2))
-    spi.handle_deselect();
+  spi.reset_transaction();
 }
 
 /**
@@ -42,7 +41,7 @@ void setup()
 }
 
 /**
- * @brief Arduino main loop: gives the monitor a chance to publish a sample.
+ * @brief Arduino main loop: gives the monitor a chance to refresh the live reading or publish a sample.
  */
 void loop()
 {

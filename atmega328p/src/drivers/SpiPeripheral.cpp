@@ -14,7 +14,14 @@ void SpiPeripheral::begin()
 void SpiPeripheral::set_sample(const SampleFrame &sample)
 {
   noInterrupts();
-  currentSample = sample;
+  officialSample = sample;
+  interrupts();
+}
+
+void SpiPeripheral::set_live_reading(const SampleFrame &reading)
+{
+  noInterrupts();
+  liveReading = reading;
   interrupts();
 }
 
@@ -27,21 +34,21 @@ void SpiPeripheral::handle_byte_received(uint8_t received)
   }
   awaitingCommand = false;
   if (received == static_cast<uint8_t>(Command::ReadSample))
-  {
-    start_sample_transfer();
-  }
+    start_transfer(officialSample);
+  else if (received == static_cast<uint8_t>(Command::ReadLive))
+    start_transfer(liveReading);
 }
 
-void SpiPeripheral::handle_deselect()
+void SpiPeripheral::reset_transaction()
 {
   awaitingCommand = true;
   txIndex = sizeof(txBuffer);
   SPDR = idleByte;
 }
 
-void SpiPeripheral::start_sample_transfer()
+void SpiPeripheral::start_transfer(const SampleFrame &frame)
 {
-  memcpy(txBuffer, &currentSample, sizeof(txBuffer));
+  memcpy(txBuffer, &frame, sizeof(txBuffer));
   txIndex = 0;
   queue_next_byte();
 }
